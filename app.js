@@ -1,4 +1,5 @@
 const userContainer = document.querySelector('#user-info')
+const notesContainer =document.querySelector('#notes-list');
 let user, notes;
 const API = 'https://acme-users-api-rev.herokuapp.com/api';
 
@@ -33,8 +34,7 @@ const startApp = async()=> {
 };
 
 function createUserCard(){
-  console.log("im here")
-  console.log(userContainer);
+
   userContainer.innerHTML = `
   <div><h5>${user.fullName}</h5></div>
   <img class= "rounded-circle z-depth-2" src = ${user.avatar}>
@@ -45,16 +45,34 @@ function createUserCard(){
 function displayNotes({data}){
   let notes = data.map(function(note){
     return `
-    <li>${note.text}</li>
+    <li>
+    ${note.text}
+    <button data-id='${note.id}'>x</button>
+    </li>
     `
   }).join()
 
+  notesContainer.innerHTML = notes;
 
+}
 
-  let notesList = document.querySelector('#notes-list');
-  console.log(notes);
-  notesList.innerHTML = notes;
+async function createNote(event){
+  let newNoteText = event.target.form[0].value;
+  let newNote ={ text: newNoteText}
+  const response = await axios.post(`${API}/users/${user.id}/notes`, newNote)
+  startApp()
 
 }
 startApp();
+
+let button = document.querySelector("#create-button")
+button.addEventListener("click", createNote)
+
+notesContainer.addEventListener("click", async (event)=>{
+  console.log(event.target.getAttribute('data-id'))
+  let id = event.target.getAttribute('data-id')
+
+   await axios.delete(`${API}/users/${user.id}/notes/${id}`);
+   startApp();
+})
 
